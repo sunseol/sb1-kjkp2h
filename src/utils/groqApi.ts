@@ -83,7 +83,7 @@ export const generateHtmlContent = async (formData: any) => {
             - FAQ section if data is provided
             - Contact information in the footer
 
-            Ensure the design aligns with the brand identity (colors, tone) provided in the form data.``
+            Ensure the design aligns with the brand identity (colors, tone) provided in the form data.`
           },
           { 
             role: 'user', 
