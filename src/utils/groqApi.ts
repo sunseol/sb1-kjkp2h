@@ -62,28 +62,7 @@ export const generateHtmlContent = async (formData: any) => {
         messages: [
           { 
             role: 'system', 
-            content: `You are an AI assistant that generates HTML content based on provided form data. Create a complete HTML document with appropriate styling. Your response should contain only the HTML code, without any additional explanations or markdown formatting. Start your response with <!DOCTYPE html> and end it with </html>.
-
-            The HTML structure should include:
-            1. A header with navigation
-            2. A hero section with a main headline, subheadline, and a CTA button
-            3. A main content area with multiple sections (e.g., features, about us, testimonials)
-            4. A footer with contact information and links
-
-            Use modern CSS practices, including flexbox or grid for layout. Ensure the design is responsive and visually appealing. Include appropriate semantic HTML5 tags.
-
-            Incorporate the following elements from the form data:
-            - Company name and industry in the header and hero section
-            - Main product/service description in the hero and a dedicated section
-            - Target audience information in an 'Ideal For' section
-            - Product features and unique selling points in a 'Features' section
-            - Pricing information if provided
-            - Call-to-action buttons throughout the page
-            - Customer reviews in a 'Testimonials' section
-            - FAQ section if data is provided
-            - Contact information in the footer
-
-            Ensure the design aligns with the brand identity (colors, tone) provided in the form data.`
+            content: 'You are an AI assistant that generates HTML content based on provided form data. Create a complete HTML document with appropriate styling. Your response should contain only the HTML code, without any additional explanations or markdown formatting. Start your response with <!DOCTYPE html> and end it with </html>. The HTML structure should include: 1. A header with navigation 2. A hero section with a main headline, subheadline, and a CTA button 3. A main content area with multiple sections (e.g., features, about us, testimonials) 4. A footer with contact information and links. Use modern CSS practices, including flexbox or grid for layout. Ensure the design is responsive and visually appealing. Include appropriate semantic HTML5 tags. Incorporate the following elements from the form data: Company name and industry in the header and hero section, Main product/service description in the hero and a dedicated section, Target audience information in an "Ideal For" section, Product features and unique selling points in a "Features" section, Pricing information if provided, Call-to-action buttons throughout the page, Customer reviews in a "Testimonials" section, FAQ section if data is provided, Contact information in the footer. Ensure the design aligns with the brand identity (colors, tone) provided in the form data.'
           },
           { 
             role: 'user', 
