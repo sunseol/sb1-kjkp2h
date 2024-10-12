@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, MessageSquare, Edit } from 'lucide-react';
+import { getGroqResponse } from '../utils/groqApi.ts'; // GROQ API 함수 import
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   text: string;
@@ -18,11 +20,13 @@ const Assistant: React.FC<AssistantProps> = ({ currentStep, setEditMode }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showSidebar, setShowSidebar] = useState(false);
   const [editMode, setEditModeState] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<{ role: string; content: string }[]>([]);
 
   useEffect(() => {
     if (isOpen) {
       const initialMessage = getInitialMessage(currentStep);
       setMessages([{ text: initialMessage, isUser: false }]);
+      setConversationHistory([{ role: 'assistant', content: initialMessage }]);
     }
   }, [isOpen, currentStep]);
 
@@ -55,14 +59,27 @@ const Assistant: React.FC<AssistantProps> = ({ currentStep, setEditMode }) => {
     }
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (inputText.trim() !== '') {
-      setMessages([...messages, { text: inputText, isUser: true }]);
+      const newUserMessage = { text: inputText, isUser: true };
+      setMessages(prevMessages => [...prevMessages, newUserMessage]);
+      
+      const updatedHistory = [...conversationHistory, { role: 'user', content: inputText }];
+      setConversationHistory(updatedHistory);
+      
       setInputText('');
-      // 여기에 AI 응답 로직을 추가할 수 있습니다.
-      setTimeout(() => {
-        setMessages(prev => [...prev, { text: "죄송합니다. 아직 AI 응답 기능이 구현되지 않았습니다.", isUser: false }]);
-      }, 1000);
+      
+      try {
+        const aiResponse = await getGroqResponse(inputText, currentStep, updatedHistory);
+        const newAiMessage = { text: aiResponse, isUser: false };
+        setMessages(prevMessages => [...prevMessages, newAiMessage]);
+        setConversationHistory(prev => [...prev, { role: 'assistant', content: aiResponse }]);
+      } catch (error) {
+        console.error('GROQ API 오류:', error);
+        const errorMessage = { text: "죄송합니다. 응답을 생성하는 중 오류가 발생했습니다.", isUser: false };
+        setMessages(prevMessages => [...prevMessages, errorMessage]);
+        setConversationHistory(prev => [...prev, { role: 'assistant', content: errorMessage.text }]);
+      }
     }
   };
 
@@ -124,7 +141,11 @@ const Assistant: React.FC<AssistantProps> = ({ currentStep, setEditMode }) => {
               {messages.map((message, index) => (
                 <div key={index} className={`mb-4 ${message.isUser ? 'text-right' : 'text-left'}`}>
                   <span className={`inline-block p-2 rounded-lg ${message.isUser ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}>
-                    {message.text}
+                    {message.isUser ? (
+                      message.text
+                    ) : (
+                      <ReactMarkdown>{message.text}</ReactMarkdown>
+                    )}
                   </span>
                 </div>
               ))}
