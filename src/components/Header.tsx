@@ -1,16 +1,7 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { isAuthenticated, logout } from '../utils/auth';
+import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
-  const navigate = useNavigate();
-  const authenticated = isAuthenticated();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/auth');
-  };
-
   return (
     <header className="bg-white shadow-md">
       <div className="container mx-auto px-6 py-3 flex justify-between items-center">
@@ -22,30 +13,9 @@ const Header: React.FC = () => {
         </Link>
         <nav>
           <ul className="flex items-center space-x-6">
-            {authenticated ? (
-              <>
-                <li><Link to="/dashboard" className="text-gray-600 hover:text-gray-900">대시보드</Link></li>
-                <li><Link to="/new-project" className="text-gray-600 hover:text-gray-900">새 프로젝트</Link></li>
-                <li><Link to="/settings" className="text-gray-600 hover:text-gray-900">설정</Link></li>
-                <li>
-                  <button
-                    onClick={handleLogout}
-                    className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
-                  >
-                    로그아웃
-                  </button>
-                </li>
-              </>
-            ) : (
-              <li>
-                <Link
-                  to="/auth"
-                  className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-                >
-                  로그인
-                </Link>
-              </li>
-            )}
+            <li><Link to="/dashboard" className="text-gray-600 hover:text-gray-900">대시보드</Link></li>
+            <li><Link to="/new-project" className="text-gray-600 hover:text-gray-900">새 프로젝트</Link></li>
+            <li><Link to="/settings" className="text-gray-600 hover:text-gray-900">설정</Link></li>
           </ul>
         </nav>
       </div>

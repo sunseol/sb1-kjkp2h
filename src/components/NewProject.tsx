@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { ArrowRight, ArrowLeft, CheckCircle } from 'lucide-react';
+import { ArrowRight, ArrowLeft, CheckCircle, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Assistant from './Assistant';
 import { getAdviceForStep } from '../utils/groqApi';
+import ReactMarkdown from 'react-markdown';
 
 const NewProject: React.FC = () => {
   const [step, setStep] = useState(1);
@@ -65,6 +66,10 @@ const NewProject: React.FC = () => {
     if (step > 1) {
       setStep(step - 1);
     }
+  };
+
+  const handleRegenerateAdvice = async () => {
+    await handleSubmit();
   };
 
   const renderStepContent = () => {
@@ -155,11 +160,25 @@ const NewProject: React.FC = () => {
         </h3>
         {/* 각 단계별 미리보기 내용 */}
         <div className="mt-6 bg-blue-50 p-4 rounded-lg">
-          <h4 className="text-lg font-semibold mb-2">AI 조언</h4>
+          <div className="flex justify-between items-center mb-2">
+            <h4 className="text-lg font-semibold">AI 조언</h4>
+            {isSubmitted[step - 1] && (
+              <button
+                onClick={handleRegenerateAdvice}
+                className="bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition duration-300 flex items-center"
+                disabled={isLoading}
+              >
+                <RefreshCw size={16} className="mr-1" />
+                {isLoading ? '생성 중...' : '다시 생성'}
+              </button>
+            )}
+          </div>
           {isLoading ? (
             <p>조언을 생성하는 중입니다...</p>
           ) : (
-            <div dangerouslySetInnerHTML={{ __html: advice[step - 1].replace(/\n/g, '<br>') }} />
+            <ReactMarkdown className="prose">
+              {advice[step - 1]}
+            </ReactMarkdown>
           )}
         </div>
       </div>
