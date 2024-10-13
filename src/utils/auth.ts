@@ -4,9 +4,11 @@ interface User {
   isAdmin?: boolean;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
 export const authenticate = async (username: string, password: string): Promise<User | null> => {
   try {
-    const response = await fetch('/api/login', {
+    const response = await fetch(`${API_URL}/api/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

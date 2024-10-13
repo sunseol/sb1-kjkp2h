@@ -22,7 +22,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await runMiddleware(req, res, cors)
   
   if (req.method === 'POST') {
+    console.log('Received request body:', req.body);  // 추가된 로그
     const { username, password } = req.body;
+
+    if (!username || !password) {  // 추가된 검증
+      return res.status(400).json({ success: false, message: '사용자 이름과 비밀번호를 모두 입력해주세요.' });
+    }
 
     try {
       console.log('Attempting to query database...');
@@ -42,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.status(401).json({ success: false, message: '이메일 또는 비밀번호가 올바르지 않습니다.' });
       }
     } catch (error) {
-      console.error('로그인 오류:', error);
+      console.error('로그인 오류 상세:', error);  // 더 자세한 에러 로깅
       res.status(500).json({ success: false, message: '서버 오류', error: error.message });
     }
   } else {
