@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, MessageSquare, Edit } from 'lucide-react';
-import { getGroqResponse } from '../utils/groqApi.ts'; // GROQ API 함수 import
+import { getGroqResponse } from '../utils/groqApi';
 import ReactMarkdown from 'react-markdown';
 
 interface Message {

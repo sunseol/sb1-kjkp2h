@@ -18,10 +18,37 @@ import Settings from './components/Settings';
 import Help from './components/Help';
 import UserInfoForm from './components/UserInfoForm';
 import FinalResult from './components/FinalResult';
+import Signup from './components/Signup';
 
 const PrivateRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
   return isAuthenticated() ? element : <Navigate to="/auth" replace />;
 };
+
+const API_URL = import.meta.env.VITE_API_URL || '';
+
+async function testLogin(username: string, password: string) {
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username, password }),
+    });
+
+    const data = await response.json();
+    console.log('로그인 응답:', data);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}, message: ${data.message}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error('로그인 오류:', error);
+    throw error;
+  }
+}
 
 function App() {
   return (
@@ -46,6 +73,7 @@ function App() {
             <Route path="/help" element={<PrivateRoute element={<Help />} />} />
             <Route path="/user-info" element={<UserInfoForm />} />
             <Route path="/final-result" element={<PrivateRoute element={<FinalResult />} />} />
+            <Route path="/signup" element={<Signup />} />
           </Routes>
         </main>
       </div>

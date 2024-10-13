@@ -3,6 +3,7 @@ import { ArrowRight, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Assistant from './Assistant';
+import { getAdviceForStep } from '../utils/groqApi';
 
 const NewProject: React.FC = () => {
   const [step, setStep] = useState(1);
@@ -17,12 +18,36 @@ const NewProject: React.FC = () => {
     email: '', phone: '', socialMedia: '',
     privacyPolicyLink: '', termsOfServiceLink: ''
   });
+  const [advice, setAdvice] = useState<string[]>(Array(6).fill(''));
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [editMode, setEditMode] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState<boolean[]>(Array(6).fill(false));
 
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    try {
+      const response = await getAdviceForStep(step, formData);
+      const newAdvice = [...advice];
+      newAdvice[step - 1] = response;
+      setAdvice(newAdvice);
+      const newIsSubmitted = [...isSubmitted];
+      newIsSubmitted[step - 1] = true;
+      setIsSubmitted(newIsSubmitted);
+    } catch (error) {
+      console.error('조언을 가져오는 중 오류 발생:', error);
+      const newAdvice = [...advice];
+      newAdvice[step - 1] = '조언을 가져오는 중 오류가 발생했습니다.';
+      setAdvice(newAdvice);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleNextStep = () => {
@@ -37,7 +62,9 @@ const NewProject: React.FC = () => {
   };
 
   const handlePrevStep = () => {
-    if (step > 1) setStep(step - 1);
+    if (step > 1) {
+      setStep(step - 1);
+    }
   };
 
   const renderStepContent = () => {
@@ -116,136 +143,27 @@ const NewProject: React.FC = () => {
   };
 
   const renderPreview = () => {
-    switch (step) {
-      case 1:
-        return (
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold mb-4">회사 소개</h3>
-            <p><strong>{formData.companyName || '회사명'}</strong>은(는) {formData.industry || '업종'} 업계에 종사하고 있으며,
-            {formData.mainProduct || '주요 제품/서비스'}을(를) 주력 상품으로 제공하고 있습니다.</p>
-            <div className="mt-6 bg-blue-50 p-4 rounded-lg">
-              <h4 className="text-lg font-semibold mb-2">AI 조언</h4>
-              <p>{formData.companyName || '귀하의 회사'}는 AI 기술을 활용하여 문서 작성을 지원하는 소프트웨어 솔루션입니다. 이는 생산성 향상 도구이자 AI 기반 문서 작성 보조 서비스로 분류 수 있습니다.</p>
-              <h5 className="text-md font-semibold mt-4 mb-2">랜딩 페이지 전략을 위한 핵심 인사이트 및 추천사항:</h5>
-              <ul className="list-disc pl-5 space-y-2">
-                <li>AI 기술의 강조: 실시간 데모나 비디오를 통해 AI의 작동 방식을 시각화하세요.</li>
-                <li>다양한 사용자 그룹 타겟팅: 직장인, 학생, 프리랜서 등 다양한 그룹별 가치 제안을 설명하세요.</li>
-                <li>강력한 CTA 설계: "지금 무료로 시작하기"와 같은 명확한 CTA 버튼을 상단과 하단에 배치하세요.</li>
-                <li>할인 혜택 강조: 신규 회원 5% 할인과 첫 구매 20% 할인을 눈에 띄게 표시하되, 시간 제한을 두어 긴급성을 부여하세요.</li>
-                <li>신뢰 구축: 고객 후기, 사용 통계, 보안 인증 등을 통해 전문성을 보여주세요.</li>
-                <li>간결한 정보 제공: 효율성 향상, 시간 절약 등 핵심 이점을 명확하게 전달하세요.</li>
-                <li>모바일 최적화: 반응형 디자인을 적용하여 다양한 기기에서 원활하게 작동하도록 하세요.</li>
-                <li>A/B 테스트 실시: 다양한 메시지와 디자인 요소에 대한 테스트를 통해 최적의 전환율을 찾으세요.</li>
-              </ul>
-            </div>
-          </div>
-        );
-      case 2:
-        return (
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold mb-4">타겟 고객</h3>
-            <p>주요 고객층: <strong>{formData.targetAudience}</strong></p>
-            <p>고객 니즈: {formData.customerInterests}</p>
-            <div className="mt-6 bg-blue-50 p-4 rounded-lg">
-              <h4 className="text-lg font-semibold mb-2">AI 조언</h4>
-              <p>버키드의 대상 고객은 "문서 작업을 하는 모든 사람"을 포함하여 광범위합니다. 다음과 같은 그룹을 고려해보세요:</p>
-              <ul className="list-disc pl-5 space-y-2 mt-2">
-                <li>다양한 산업의 사무직 근로자</li>
-                <li>모든 교육 수준의 학생</li>
-                <li>프리랜서 작가 및 콘텐츠 제작자</li>
-                <li>연구자 및 학자</li>
-                <li>비즈니스 전문가(관리자, 임원, 기업가)</li>
-                <li>관리 직원</li>
-              </ul>
-              <p className="mt-4">이 대상의 주요 특징:</p>
-              <ul className="list-disc pl-5 space-y-2 mt-2">
-                <li>정기적으로 글쓰기와 문서 작성에 참여</li>
-                <li>업무에서 효율성과 생산성을 중시할 가능성이 높음</li>
-                <li>다양한 수준의 글쓰기 기술을 가질 수 있음</li>
-                <li>시간 관리 또는 작가의 블록에 대한 어려움에 직면할 수 있음</li>
-                <li>업무 프로세스를 개선하기 위한 기술 솔루션에 개방적일 수 있음</li>
-              </ul>
-            </div>
-          </div>
-        );
-      case 3:
-        return (
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold mb-4">제품/서비스 특징</h3>
-            <ul className="list-disc pl-5">
-              {formData.productFeatures.split(',').map((feature, index) => (
-                <li key={index}>{feature.trim()}</li>
-              ))}
-            </ul>
-            <p className="mt-4"><strong>차별화 포인트:</strong> {formData.uniqueSellingPoints}</p>
-            <div className="mt-6 bg-blue-50 p-4 rounded-lg">
-              <h4 className="text-lg font-semibold mb-2">AI 조언: 랜딩 페이지 제안</h4>
-              <ul className="list-disc pl-5 space-y-2">
-                <li><strong>헤드라인:</strong> AI 기반 문서 작성과 효율성 향상을 강조하세요.</li>
-                <li><strong>설명자 비디오:</strong> AI가 글쓰기를 돕고 생산성을 향상시키는 방법을 보여주는 짧은 애니메이션을 추가하세요.</li>
-                <li><strong>특징 하이라이트:</strong> 자동 텍스트 생성, AI 쓰기 지원, 효율성 향상 도구를 소개하세요.</li>
-                <li><strong>혜택 섹션:</strong> 시간 절약, 품질 개선, 비즈니스 효율성 향상에 중점을 두세요.</li>
-                <li><strong>비교 표:</strong> AI 솔루션을 기존 문서 작성 방법과 비교하세요.</li>
-                <li><strong>추천:</strong> 효율성을 개선한 기업의 특징적인 인용문을 포함하세요.</li>
-                <li><strong>신뢰 지표:</strong> 잘 알려진 고객의 로고와 관련 AI 또는 보안 인증을 표시하세요.</li>
-                <li><strong>CTA:</strong> 눈에 띄는 "무료 체험 시작" 버튼을 배치하세요.</li>
-              </ul>
-              <h4 className="text-lg font-semibold mt-4 mb-2">추가 인사이트</h4>
-              <ul className="list-disc pl-5 space-y-2">
-                <li>데이터 보안과 개인정보 보호에 집중하세요.</li>
-                <li>학습 곡선을 강조하고 포괄적인 온보딩을 제공하여 채택을 용이하게 하세요.</li>
-                <li>다양한 비즈니스 섹터에 맞는 산업별 템플릿 또는 기능을 제공하는 것을 고려해보세요.</li>
-              </ul>
-              <h4 className="text-lg font-semibold mt-4 mb-2">혁신적인 마케팅 접근 방식</h4>
-              <p>'AI 글쓰기 챌린지' 캠페인을 시행하여 잠재 고객이 전통적인 글쓰기 과정을 AI 도구와 실시간으로 비교할 수 있게 하세요.</p>
-              <p className="mt-4 font-semibold">요약:</p>
-              <p>AI 기반 SaaS 산업에서 성공의 열쇠는 AI 기술의 가시적인 이점을 입증하는 것입니다. 마케팅 노력은 교육, 실습 경험 제공, 고객 성공 사례를 통한 신뢰 구축에 집중해야 합니다.</p>
-            </div>
-          </div>
-        );
-      case 4:
-        return (
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold mb-4">브랜드 아이덴티티</h3>
-            <p><strong>슬로건:</strong> "{formData.brandSlogan}"</p>
-            <p><strong>브랜드 톤:</strong> {formData.brandTone}</p>
-            <p className="mt-4"><strong>주요 목표:</strong> {formData.marketingGoal}</p>
-            <button className="mt-4 bg-blue-500 text-white px-4 py-2 rounded">
-              {formData.callToAction}
-            </button>
-          </div>
-        );
-      case 5:
-        return (
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold mb-4">고객 후기</h3>
-            <blockquote className="italic border-l-4 border-gray-300 pl-4 py-2 mb-4">
-              "{formData.customerReviews}"
-            </blockquote>
-            <h4 className="font-semibold mt-4 mb-2">자주 묻는 질문</h4>
-            <ul className="list-disc pl-5">
-              {formData.faqItems.split(',').map((faq, index) => (
-                <li key={index}>{faq.trim()}</li>
-              ))}
-            </ul>
-          </div>
-        );
-      case 6:
-        return (
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold mb-4">연락처 정보</h3>
-            <p><strong>이메일:</strong> {formData.email}</p>
-            <p><strong>전화번호:</strong> {formData.phone}</p>
-            <p><strong>소셜 미디어:</strong> {formData.socialMedia}</p>
-            <div className="mt-4">
-              <a href={formData.privacyPolicyLink} className="text-blue-500 hover:underline mr-4">개인정보 처리방침</a>
-              <a href={formData.termsOfServiceLink} className="text-blue-500 hover:underline">이용약관</a>
-            </div>
-          </div>
-        );
-      default:
-        return null;
-    }
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-xl font-semibold mb-4">
+          {step === 1 ? '회사 소개' :
+           step === 2 ? '타겟 고객' :
+           step === 3 ? '제품/서비스 특징' :
+           step === 4 ? '브랜드 아이덴티티' :
+           step === 5 ? '고객 후기 및 FAQ' :
+           '연락처 정보'}
+        </h3>
+        {/* 각 단계별 미리보기 내용 */}
+        <div className="mt-6 bg-blue-50 p-4 rounded-lg">
+          <h4 className="text-lg font-semibold mb-2">AI 조언</h4>
+          {isLoading ? (
+            <p>조언을 생성하는 중입니다...</p>
+          ) : (
+            <div dangerouslySetInnerHTML={{ __html: advice[step - 1].replace(/\n/g, '<br>') }} />
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -290,12 +208,22 @@ const NewProject: React.FC = () => {
                   <ArrowLeft className="mr-2" /> 이전
                 </button>
               )}
-              <button
-                onClick={handleNextStep}
-                className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out flex items-center font-medium ml-auto"
-              >
-                {step < 6 ? '다음' : '완료'} <ArrowRight className="ml-2" />
-              </button>
+              {!isSubmitted[step - 1] ? (
+                <button
+                  onClick={handleSubmit}
+                  className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out flex items-center font-medium ml-auto"
+                  disabled={isLoading}
+                >
+                  {isLoading ? '제출 중...' : '제출'}
+                </button>
+              ) : (
+                <button
+                  onClick={handleNextStep}
+                  className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition duration-300 ease-in-out flex items-center font-medium ml-auto"
+                >
+                  {step < 6 ? '다음' : '완료'} <ArrowRight className="ml-2" />
+                </button>
+              )}
             </div>
           </motion.div>
           {showPanel && (
@@ -310,7 +238,7 @@ const NewProject: React.FC = () => {
           )}
         </div>
       </div>
-      <Assistant currentStep={step} />
+      <Assistant currentStep={step} setEditMode={setEditMode} />
     </div>
   );
 };
