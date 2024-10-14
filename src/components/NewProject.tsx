@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Assistant from './Assistant';
 import { getAdviceForStep } from '../utils/groqApi';
 import ReactMarkdown from 'react-markdown';
+import { getUser } from '../utils/auth';
 
 const NewProject: React.FC = () => {
   const [step, setStep] = useState(1);
@@ -23,6 +24,7 @@ const NewProject: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [editMode, setEditMode] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState<boolean[]>(Array(6).fill(false));
+  const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
@@ -72,6 +74,48 @@ const NewProject: React.FC = () => {
     await handleSubmit();
   };
 
+  const handleSaveProject = async () => {
+    console.log('handleSaveProject 함수 호출됨');
+    const user = getUser();
+    if (!user || !user.id) {
+      setError('로그인이 필요합니다.');
+      return;
+    }
+
+    try {
+      console.log('프로젝트 저장 시도:', { userId: user.id, name: formData.companyName, data: formData });
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/projects`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          name: formData.companyName || '새 프로젝트',
+          data: formData,
+          htmlContent: '', // HTML 콘텐츠가 아직 생성되지 않았으므로 빈 문자열 전송
+        }),
+      });
+
+      const result = await response.json();
+      console.log('서버 응답:', result);
+      if (result.success) {
+        navigate('/dashboard');
+      } else {
+        setError('프로젝트 저장에 실패했습니다: ' + result.message);
+      }
+    } catch (error) {
+      console.error('프로젝트 저장 중 오류 발생:', error);
+      setError('프로젝트 저장 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleComplete = () => {
+    console.log('handleComplete 함수 호출됨');
+    // 프로젝트 데이터를 FinalResult 컴포넌트로 전달
+    navigate('/final-result', { state: { formData } });
+  };
+
   const renderStepContent = () => {
     switch (step) {
       case 1:
@@ -113,7 +157,7 @@ const NewProject: React.FC = () => {
             <div className="space-y-4">
               <input type="text" name="marketingGoal" value={formData.marketingGoal} onChange={handleChange} placeholder="랜딩 페이지의 주요 목적" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <input type="text" name="callToAction" value={formData.callToAction} onChange={handleChange} placeholder="희망하는 주요 행동 유도 (CTA) 내용" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              <input type="text" name="brandSlogan" value={formData.brandSlogan} onChange={handleChange} placeholder="브랜드 슬로건 또는 태그인" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input type="text" name="brandSlogan" value={formData.brandSlogan} onChange={handleChange} placeholder="브랜드 슬로건 는 태그인" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <input type="text" name="brandColors" value={formData.brandColors} onChange={handleChange} placeholder="브드 색상 (주요 색상 2-3개)" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <input type="text" name="brandTone" value={formData.brandTone} onChange={handleChange} placeholder="브랜드 톤앤보이스" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
@@ -237,10 +281,10 @@ const NewProject: React.FC = () => {
                 </button>
               ) : (
                 <button
-                  onClick={handleNextStep}
+                  onClick={step === 6 ? handleComplete : handleNextStep}
                   className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition duration-300 ease-in-out flex items-center font-medium ml-auto"
                 >
-                  {step < 6 ? '다음' : '완료'} <ArrowRight className="ml-2" />
+                  {step < 6 ? '다음' : 'HTML 생성'} <ArrowRight className="ml-2" />
                 </button>
               )}
             </div>

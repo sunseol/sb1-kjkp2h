@@ -2,49 +2,52 @@ interface User {
   email: string;
   username: string;
   isAdmin?: boolean;
+  id: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
-// 로그인 상태를 항상 true로 반환하는 함수
 export const isAuthenticated = (): boolean => {
-  return true;
+  return localStorage.getItem('isAuthenticated') === 'true';
 };
 
-// 더미 사용자 정보를 반환하는 함수
-export const getUser = (): { username: string, email: string } => {
-  return { username: 'Guest', email: 'guest@example.com' };
+export const getUser = (): { id: string, username: string, email: string } | null => {
+  const id = localStorage.getItem('userId');
+  const username = localStorage.getItem('username');
+  const email = localStorage.getItem('email');
+  return id && username && email ? { id, username, email } : null;
 };
 
-// 나머지 함수들은 주석 처리
-/*
-export const authenticate = async (username: string, password: string): Promise<User | null> => {
+export const authenticate = async (email: string, password: string): Promise<User | null> => {
   try {
     const response = await fetch(`${API_URL}/api/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ email, password }),
     });
 
+    const data = await response.json();
+    console.log('Server response:', data);
+
     if (!response.ok) {
-      throw new Error('Authentication failed');
+      throw new Error(data.message || 'Authentication failed');
     }
 
-    const data = await response.json();
-    if (data.success) {
-      return { username, email: data.email, isAdmin: data.isAdmin };
+    if (data.success && data.id) {  // id 확인 추가
+      return { id: data.id, email, username: data.username };
     }
     return null;
   } catch (error) {
     console.error('Authentication error:', error);
-    return null;
+    throw error;
   }
 };
 
 export const login = (user: User): void => {
   localStorage.setItem('isAuthenticated', 'true');
+  localStorage.setItem('userId', user.id);
   localStorage.setItem('username', user.username);
   localStorage.setItem('email', user.email);
   if (user.isAdmin !== undefined) {
@@ -54,6 +57,7 @@ export const login = (user: User): void => {
 
 export const logout = (): void => {
   localStorage.removeItem('isAuthenticated');
+  localStorage.removeItem('userId');
   localStorage.removeItem('username');
   localStorage.removeItem('email');
   localStorage.removeItem('isAdmin');
@@ -69,16 +73,7 @@ export const signup = async (username: string, email: string, password: string):
       body: JSON.stringify({ username, email, password }),
     });
 
-    const text = await response.text();
-    console.log('Raw response:', text);
-
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch (error) {
-      console.error('Failed to parse response:', error);
-      return { success: false, message: 'Invalid server response' };
-    }
+    const data = await response.json();
 
     if (!response.ok) {
       throw new Error(data.message || 'Signup failed');
@@ -90,4 +85,3 @@ export const signup = async (username: string, email: string, password: string):
     return { success: false, message: error instanceof Error ? error.message : 'An error occurred during signup' };
   }
 };
-*/

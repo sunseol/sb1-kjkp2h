@@ -23,12 +23,9 @@ const Assistant: React.FC<AssistantProps> = ({ currentStep, setEditMode }) => {
   const [conversationHistory, setConversationHistory] = useState<{ role: string; content: string }[]>([]);
 
   useEffect(() => {
-    if (isOpen) {
-      const initialMessage = getInitialMessage(currentStep);
-      setMessages([{ text: initialMessage, isUser: false }]);
-      setConversationHistory([{ role: 'assistant', content: initialMessage }]);
-    }
-  }, [isOpen, currentStep]);
+    const initialMessage = getInitialMessage(currentStep);
+    setMessages([{ text: initialMessage, isUser: false }]);
+  }, [currentStep]);
 
   useEffect(() => {
     scrollToBottom();
@@ -40,10 +37,12 @@ const Assistant: React.FC<AssistantProps> = ({ currentStep, setEditMode }) => {
 
   const getInitialMessage = (step: number) => {
     switch (step) {
+      case 0:
+        return "안녕하세요! LLM 랜딩페이지 생성기에 오신 것을 환영합니다. 무엇을 도와드릴까요?";
       case 1:
-        return "기본 비즈니스 정보를 입력하고 계시네요. 회사명, 업종, 주요 제품/서비스에 대해 구체적으로 작성해보세요.";
+        return "새 프로젝트를 시작하셨군요! 기본 비즈니스 정보를 입력해주세요.";
       case 2:
-        return "타겟 오디언스 정보를 입력하고 계십니다. 주 고객층과 그들의 관심사나 니즈를 명확히 정의해보세요.";
+        return "타겟 오디언스 정보를 입력하고 계시네요. 고객층을 명확히 정의하면 더 효과적인 랜딩 페이지를 만들 수 있습니다.";
       case 3:
         return "제품/서비스 상세 정보를 작성 중이시군요. 주요 특징과 경쟁사 대비 차별점을 강조해보세요.";
       case 4:
@@ -55,7 +54,7 @@ const Assistant: React.FC<AssistantProps> = ({ currentStep, setEditMode }) => {
       case 7:
         return "프로젝트 최종 결과를 확인하고 계시네요. 생성된 웹페이지를 검토하고 필요한 부분을 수정해보세요. HTML 코드도 확인할 수 있습니다.";
       default:
-        return "안녕하세요! 무엇을 도와드릴까요?";
+        return "무엇을 도와드릴까요?";
     }
   };
 

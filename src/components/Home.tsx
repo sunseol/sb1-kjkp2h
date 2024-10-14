@@ -1,8 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Zap } from 'lucide-react';
 
-const Home: React.FC = () => {
+interface HomeProps {
+  setCurrentStep: (step: number) => void;
+}
+
+const Home: React.FC<HomeProps> = ({ setCurrentStep }) => {
+  useEffect(() => {
+    setCurrentStep(0); // 홈 페이지는 0단계로 설정
+  }, [setCurrentStep]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex flex-col justify-center items-center text-white p-4">
       <h1 className="text-5xl font-bold mb-6">LLM 랜딩페이지 생성기</h1>
