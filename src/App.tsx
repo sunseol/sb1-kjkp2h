@@ -7,6 +7,7 @@ import NewProject from './components/NewProject';
 import ProjectDetails from './components/ProjectDetails';
 import Settings from './components/Settings';
 import FinalResult from './components/FinalResult';
+import Details from './components/Details';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path="/project/:id" element={<ProjectDetails />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/final-result" element={<FinalResult />} />
+            <Route path="/details" element={<Details />} />
           </Routes>
         </main>
       </div>

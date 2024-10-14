@@ -17,7 +17,7 @@ const Home: React.FC = () => {
           시작하기 <ArrowRight className="ml-2" />
         </Link>
         <Link
-          to="/help"
+          to="/details"
           className="bg-transparent border-2 border-white px-6 py-3 rounded-full font-semibold flex items-center hover:bg-white hover:text-blue-600 transition duration-300"
         >
           더 알아보기 <Zap className="ml-2" />
