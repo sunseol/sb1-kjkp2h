@@ -1,4 +1,4 @@
-import { createPool } from '@vercel/postgres';
+import { sql } from "@vercel/postgres";
 import bcrypt from 'bcryptjs';
 import cors from 'micro-cors';
 
@@ -21,16 +21,12 @@ const handler = async (req, res) => {
 
   const { username, email, password } = req.body;
 
-  const pool = createPool({
-    connectionString: `postgres://default:Na1fi3zUgMFc@ep-twilight-boat-a4kkazrn-pooler.us-east-1.aws.neon.tech/verceldb?sslmode=require`
-  });
-
   try {
     console.log('Attempting to sign up user...');
     console.log('Received data:', { username, email });
     
     // 사용자 이름 중복 확인
-    const { rows } = await pool.query('SELECT * FROM users WHERE username = $1 OR email = $2', [username, email]);
+    const { rows } = await sql`SELECT * FROM users WHERE username = ${username} OR email = ${email}`;
     console.log('Existing users:', rows);
 
     if (rows.length > 0) {
@@ -43,10 +39,11 @@ const handler = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // 새 사용자 추가
-    const result = await pool.query(
-      'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, email, username',
-      [username, email, hashedPassword]
-    );
+    const result = await sql`
+      INSERT INTO users (username, email, password) 
+      VALUES (${username}, ${email}, ${hashedPassword}) 
+      RETURNING id, email, username
+    `;
     console.log('New user created:', result.rows[0]);
 
     res.status(201).json({ message: '회원가입 성공', user: result.rows[0] });

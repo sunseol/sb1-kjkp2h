@@ -1,4 +1,4 @@
-import { createPool } from '@vercel/postgres';
+import { sql } from "@vercel/postgres";
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import cors from 'micro-cors';
@@ -22,13 +22,9 @@ const handler = async (req, res) => {
 
   const { email, password } = req.body;
 
-  const pool = createPool({
-    connectionString: `postgres://default:Na1fi3zUgMFc@ep-twilight-boat-a4kkazrn-pooler.us-east-1.aws.neon.tech/verceldb?sslmode=require`
-  });
-
   try {
     console.log('Attempting to query database...');
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const result = await sql`SELECT * FROM users WHERE email = ${email}`;
     console.log('Query result:', result.rows);
 
     const user = result.rows[0];
