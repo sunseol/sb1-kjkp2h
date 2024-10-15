@@ -6,7 +6,9 @@ import cors from 'micro-cors';
 const corsHandler = cors({
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowHeaders: ['Content-Type', 'Authorization'],
-  origin: '*' // 프로덕션 환경에서는 특정 도메인으로 제한하는 것이 좋습니다
+  origin: process.env.VERCEL_URL 
+    ? 'https://sb1-kjkp2h-o6stapb0f-sunseols-projects.vercel.app' 
+    : 'http://localhost:5173'
 });
 
 const handler = async (req, res) => {
@@ -21,11 +23,14 @@ const handler = async (req, res) => {
   const { email, password } = req.body;
 
   const pool = createPool({
-    connectionString: process.env.POSTGRES_URL
+    connectionString: `postgres://default:Na1fi3zUgMFc@ep-twilight-boat-a4kkazrn-pooler.us-east-1.aws.neon.tech/verceldb?sslmode=require`
   });
 
   try {
+    console.log('Attempting to query database...');
     const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    console.log('Query result:', result.rows);
+
     const user = result.rows[0];
 
     if (!user) {
@@ -42,7 +47,7 @@ const handler = async (req, res) => {
     res.status(200).json({ message: '로그인 성공', token, id: user.id, username: user.username });
   } catch (error) {
     console.error('로그인 오류:', error);
-    res.status(500).json({ message: '서버 오류' });
+    res.status(500).json({ message: '서버 오류', error: error.toString() });
   }
 };
 

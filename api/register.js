@@ -5,7 +5,9 @@ import cors from 'micro-cors';
 const corsHandler = cors({
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowHeaders: ['Content-Type', 'Authorization'],
-  origin: '*' // 프로덕션 환경에서는 특정 도메인으로 제한하는 것이 좋습니다
+  origin: process.env.VERCEL_URL 
+    ? 'https://sb1-kjkp2h-o6stapb0f-sunseols-projects.vercel.app' 
+    : 'http://localhost:5173'
 });
 
 const handler = async (req, res) => {
@@ -20,29 +22,37 @@ const handler = async (req, res) => {
   const { username, email, password } = req.body;
 
   const pool = createPool({
-    connectionString: process.env.POSTGRES_URL
+    connectionString: `postgres://default:Na1fi3zUgMFc@ep-twilight-boat-a4kkazrn-pooler.us-east-1.aws.neon.tech/verceldb?sslmode=require`
   });
 
   try {
-    // 이메일 중복 확인
-    const checkUser = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (checkUser.rows.length > 0) {
-      return res.status(400).json({ message: '이미 존재하는 이메일입니다.' });
+    console.log('Attempting to sign up user...');
+    console.log('Received data:', { username, email });
+    
+    // 사용자 이름 중복 확인
+    const { rows } = await pool.query('SELECT * FROM users WHERE username = $1 OR email = $2', [username, email]);
+    console.log('Existing users:', rows);
+
+    if (rows.length > 0) {
+      console.log('User already exists');
+      return res.status(400).json({ message: '이미 존재하는 사용자 이름 또는 이메일입니다.' });
     }
 
     // 비밀번호 해싱
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 사용자 생성
+    // 새 사용자 추가
     const result = await pool.query(
       'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, email, username',
       [username, email, hashedPassword]
     );
+    console.log('New user created:', result.rows[0]);
 
     res.status(201).json({ message: '회원가입 성공', user: result.rows[0] });
   } catch (error) {
     console.error('회원가입 오류:', error);
-    res.status(500).json({ message: '서버 오류' });
+    res.status(500).json({ message: '서버 오류', error: error.toString() });
   }
 };
 

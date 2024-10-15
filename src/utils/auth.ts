@@ -5,7 +5,9 @@ interface User {
   id: string;
 }
 
-const API_URL = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/api` : 'http://localhost:3000/api';
+const API_URL = process.env.NODE_ENV === 'production'
+? 'https://sb1-kjkp2h-o6stapb0f-sunseols-projects.vercel.app/api'
+: 'http://localhost:3000/api';
 
 export const isAuthenticated = (): boolean => {
   return localStorage.getItem('isAuthenticated') === 'true';
