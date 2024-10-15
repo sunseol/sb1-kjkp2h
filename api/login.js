@@ -4,11 +4,9 @@ import jwt from 'jsonwebtoken';
 import cors from 'micro-cors';
 
 const corsHandler = cors({
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
-  origin: process.env.VERCEL_URL 
-    ? 'https://sb1-kjkp2h-o6stapb0f-sunseols-projects.vercel.app' 
-    : 'http://localhost:5173'
+  origin: 'https://sb1-kjkp2h-pr3chvx7d-sunseols-projects.vercel.app'
 });
 
 const handler = async (req, res) => {

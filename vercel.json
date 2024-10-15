@@ -17,8 +17,9 @@
       "dest": "/api/$1.js",
       "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       "headers": {
-        "Access-Control-Allow-Origin": "https://sb1-kjkp2h-o6stapb0f-sunseols-projects.vercel.app",
+        "Access-Control-Allow-Origin": "https://sb1-kjkp2h-pr3chvx7d-sunseols-projects.vercel.app",
         "Access-Control-Allow-Headers": "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
         "Access-Control-Allow-Credentials": "true"
       }
     },
