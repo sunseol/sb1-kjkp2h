@@ -4,6 +4,8 @@ import Assistant from './Assistant';
 import { generateHtmlContent } from '../utils/groqApi';
 import { getUser } from '../utils/auth';
 import LoadingSpinner from './LoadingSpinner';
+import { generateImage, generateDummyImage } from '../utils/imageGeneration';
+import ReactMarkdown from 'react-markdown';
 
 interface FormData {
   companyName: string;
@@ -28,6 +30,7 @@ const FinalResult: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const formData = location.state?.formData as FormData | undefined;
+  const summarizedAdvice = location.state?.summarizedAdvice as string | undefined;
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeHeight, setIframeHeight] = useState('600px');
   const [editMode, setEditMode] = useState(false);
@@ -39,35 +42,58 @@ const FinalResult: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [imagePrompt, setImagePrompt] = useState('');
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [parsedHtmlContent, setParsedHtmlContent] = useState<{ html: string; advice: string }>({ html: '', advice: '' });
 
   useEffect(() => {
     const fetchHtmlContent = async () => {
-      if (formData) {
+      if (formData && summarizedAdvice) {
         try {
           setIsLoading(true);
           console.log('HTML 콘텐츠 생성 요청 시작');
           
-          const content = await generateHtmlContent(formData);
+          const content = await generateHtmlContent(formData, summarizedAdvice);
           
           console.log('받아온 HTML 콘텐츠:', content);
           
-          setHtmlContent(content);
+          // HTML 코드와 조언 분리
+          const htmlMatch = content.match(/```html\n([\s\S]*?)\n```/);
+          let html = htmlMatch ? htmlMatch[1] : '';
+          const advice = content.replace(/```html\n[\s\S]*?\n```/, '').trim();
+          
+          // Tailwind CSS CDN 추가
+          html = `
+            <html>
+              <head>
+                <script src="https://cdn.tailwindcss.com"></script>
+              </head>
+              <body>
+                ${html}
+              </body>
+            </html>
+          `;
+          
+          setParsedHtmlContent({ html, advice });
+          setHtmlContent(html);
         } catch (error) {
           console.error('HTML 콘텐츠 생성 오류:', error);
           console.error('오류 발생 시 formData:', JSON.stringify(formData, null, 2));
+          console.error('오류 발생 시 summarizedAdvice:', summarizedAdvice);
           setError('HTML 콘텐츠를 생성하는 중 오류가 발생했습니다.');
         } finally {
           setIsLoading(false);
         }
       } else {
-        console.warn('formData가 없습니다.');
+        console.warn('formData 또는 summarizedAdvice가 없습니다.');
         setError('프로젝트 데이터를 찾을 수 없습니다.');
         setIsLoading(false);
       }
     };
 
     fetchHtmlContent();
-  }, [formData]);
+  }, [formData, summarizedAdvice]);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -117,6 +143,40 @@ const FinalResult: React.FC = () => {
     }
   };
 
+  const handleGenerateImage = async () => {
+    if (!imagePrompt.trim()) {
+      setError('이미지 프롬프트를 입력해주세요.');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      let imageBlob;
+      try {
+        imageBlob = await generateImage(imagePrompt);
+      } catch (error) {
+        console.warn('Hugging Face API 오류, 더미 이미지 사용:', error);
+        imageBlob = await generateDummyImage(imagePrompt);
+      }
+      const imageUrl = URL.createObjectURL(imageBlob);
+      setGeneratedImageUrl(imageUrl);
+
+      // HTML에 이미지 추가
+      const updatedHtmlContent = insertImageIntoHtml(htmlContent, imageUrl);
+      setHtmlContent(updatedHtmlContent);
+    } catch (error: any) {
+      console.error('이미지 생성 중 오류 발생:', error);
+      setError(`이미지를 생성하는 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const insertImageIntoHtml = (html: string, imageUrl: string): string => {
+    // 간단한 예: body 태그 바로 다음에 이미지 삽입
+    return html.replace('<body>', `<body><img src="${imageUrl}" alt="Generated Image" style="max-width: 100%; height: auto;">`);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8 relative">
       {isLoading && (
@@ -151,7 +211,15 @@ const FinalResult: React.FC = () => {
           <div className="mt-8">
             <h2 className="text-2xl font-semibold text-gray-700 mb-4">HTML 코드</h2>
             <div className="mt-4 p-4 bg-gray-100 rounded-lg overflow-auto max-h-96">
-              <pre className="text-sm">{htmlContent}</pre>
+              <pre className="text-sm">{parsedHtmlContent.html}</pre>
+            </div>
+          </div>
+          <div className="mt-8">
+            <h2 className="text-2xl font-semibold text-gray-700 mb-4">AI 조언</h2>
+            <div className="mt-4 p-4 bg-gray-100 rounded-lg overflow-auto max-h-96">
+              <ReactMarkdown className="prose">
+                {parsedHtmlContent.advice}
+              </ReactMarkdown>
             </div>
           </div>
           <div className="mt-8">
@@ -162,6 +230,30 @@ const FinalResult: React.FC = () => {
               프로젝트 저장
             </button>
           </div>
+          {/* 이미지 생성 섹션 */}
+          <div className="mt-8">
+            <h2 className="text-2xl font-semibold text-gray-700 mb-4">이미지 생성</h2>
+            <div className="flex items-center space-x-4">
+              <input
+                type="text"
+                value={imagePrompt}
+                onChange={(e) => setImagePrompt(e.target.value)}
+                placeholder="이미지 프롬프트 입력"
+                className="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                onClick={handleGenerateImage}
+                className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition duration-300 ease-in-out"
+              >
+                이미지 생성
+              </button>
+            </div>
+          </div>
+          {generatedImageUrl && (
+            <div className="mt-4">
+              <img src={generatedImageUrl} alt="Generated" className="max-w-full h-auto rounded-lg shadow-md" />
+            </div>
+          )}
         </div>
       )}
       {showSuccessModal && (

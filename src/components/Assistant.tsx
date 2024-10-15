@@ -1,11 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, MessageSquare, Edit } from 'lucide-react';
+import { MessageCircle, X, Send, MessageSquare, Edit, Image, Loader } from 'lucide-react';
 import { getGroqResponse } from '../utils/groqApi';
 import ReactMarkdown from 'react-markdown';
+import { generateImage, generateDummyImage } from '../utils/imageGeneration';
 
 interface Message {
   text: string;
   isUser: boolean;
+  imageUrl?: string;
+  isLoading?: boolean;
 }
 
 interface AssistantProps {
@@ -21,10 +24,12 @@ const Assistant: React.FC<AssistantProps> = ({ currentStep, setEditMode }) => {
   const [showSidebar, setShowSidebar] = useState(false);
   const [editMode, setEditModeState] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<{ role: string; content: string }[]>([]);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   useEffect(() => {
     const initialMessage = getInitialMessage(currentStep);
     setMessages([{ text: initialMessage, isUser: false }]);
+    setConversationHistory([{ role: 'assistant', content: initialMessage }]);
   }, [currentStep]);
 
   useEffect(() => {
@@ -40,21 +45,21 @@ const Assistant: React.FC<AssistantProps> = ({ currentStep, setEditMode }) => {
       case 0:
         return "안녕하세요! LLM 랜딩페이지 생성기에 오신 것을 환영합니다. 무엇을 도와드릴까요?";
       case 1:
-        return "새 프로젝트를 시작하셨군요! 기본 비즈니스 정보를 입력해주세요.";
+        return "새 프로젝트를 시작하셨군요! 기본 비즈니스 정보를 입력해주세요. 회사명, 업종, 주요 제품 또는 서비스에 대해 알려주세요.";
       case 2:
-        return "타겟 오디언스 정보를 입력하고 계시네요. 고객층을 명확히 정의하면 더 효과적인 랜딩 페이지를 만들 수 있습니다.";
+        return "타겟 오디언스 정보를 입력하고 계시네요. 주 타겟 고객층과 그들의 주요 관심사나 니즈에 대해 자세히 설명해주세요.";
       case 3:
-        return "제품/서비스 상세 정보를 작성 중이시군요. 주요 특징과 경쟁사 대비 차별점을 강조해보세요.";
+        return "제품/서비스 상세 정보를 작성 중이시군요. 주요 특징, 경쟁사 대비 차별화 포인트, 가격 정보 등을 명확하게 설명해주세요.";
       case 4:
-        return "마케팅 목표와 브랜드 아이덴티티를 정의하고 계시네요. 명확한 CTA와 브랜드 톤앤보이스를 설정해보세요.";
+        return "마케팅 목표와 브랜드 아이덴티티를 정의하고 계시네요. 랜딩 페이지의 주요 목적, CTA 내용, 브랜드 슬로건, 색상, 톤앤보이스에 대해 알려주세요.";
       case 5:
-        return "추가 콘텐츠 요소를 입력하고 계십니다. 고객 후기와 FAQ는 신뢰도를 높이는 데 큰 도움이 됩니다.";
+        return "추가 콘텐츠 요소를 입력하고 계십니다. 고객 후기나 추천사, FAQ 항목을 추가하면 랜딩 페이지의 신뢰도를 높일 수 있습니다.";
       case 6:
-        return "연락처와 법적 정보를 입력하고 계시네요. 이 정보들은 고객과의 소통과 법적 보호에 중요합니다.";
+        return "연락처와 법적 정보를 입력하고 계시네요. 이메일, 전화번호, 소셜 미디어 링크, 개인정보 처리방침, 이용약관 링크 등을 포함해주세요.";
       case 7:
-        return "프로젝트 최종 결과를 확인하고 계시네요. 생성된 웹페이지를 검토하고 필요한 부분을 수정해보세요. HTML 코드도 확인할 수 있습니다.";
+        return "프로젝트 최종 결과를 확인하고 계시네요. 생성된 웹페이지를 검토하고 필요한 부분을 수정해보세요. HTML 코드도 확인할 수 있습니다. 추가로 도움이 필요하신 부분이 있나요?";
       default:
-        return "무엇을 도와드릴까요?";
+        return "현재 단계에 대해 어떤 도움이 필요하신가요?";
     }
   };
 
@@ -92,6 +97,42 @@ const Assistant: React.FC<AssistantProps> = ({ currentStep, setEditMode }) => {
     setEditModeState(newEditMode);
     setEditMode(newEditMode);
     console.log("편집 모드 전환");
+  };
+
+  const handleGenerateImage = async () => {
+    if (inputText.trim() === '') {
+      return;
+    }
+
+    setIsGeneratingImage(true);
+    const newMessage = { text: `이미지 생성 중: ${inputText}`, isUser: false, isLoading: true };
+    setMessages(prevMessages => [...prevMessages, newMessage]);
+    setInputText('');
+
+    try {
+      let imageBlob;
+      try {
+        imageBlob = await generateImage(inputText);
+      } catch (error) {
+        console.warn('Hugging Face API 오류, 더미 이미지 사용:', error);
+        imageBlob = await generateDummyImage(inputText);
+      }
+      const imageUrl = URL.createObjectURL(imageBlob);
+      setMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg === newMessage ? { ...msg, text: `이미지 생성: ${inputText}`, imageUrl, isLoading: false } : msg
+        )
+      );
+    } catch (error) {
+      console.error('이미지 생성 중 오류 발생:', error);
+      setMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg === newMessage ? { ...msg, text: "이미지 생성 중 오류가 발생했습니다.", isLoading: false } : msg
+        )
+      );
+    } finally {
+      setIsGeneratingImage(false);
+    }
   };
 
   return (
@@ -142,10 +183,18 @@ const Assistant: React.FC<AssistantProps> = ({ currentStep, setEditMode }) => {
                   <span className={`inline-block p-2 rounded-lg ${message.isUser ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}>
                     {message.isUser ? (
                       message.text
+                    ) : message.isLoading ? (
+                      <div className="flex items-center">
+                        <Loader className="animate-spin mr-2" size={16} />
+                        {message.text}
+                      </div>
                     ) : (
                       <ReactMarkdown>{message.text}</ReactMarkdown>
                     )}
                   </span>
+                  {message.imageUrl && !message.isLoading && (
+                    <img src={message.imageUrl} alt="Generated" className="mt-2 max-w-full h-auto rounded" />
+                  )}
                 </div>
               ))}
               <div ref={messagesEndRef} />
@@ -164,6 +213,13 @@ const Assistant: React.FC<AssistantProps> = ({ currentStep, setEditMode }) => {
                 className="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 transition-colors duration-300"
               >
                 <Send size={20} />
+              </button>
+              <button
+                onClick={handleGenerateImage}
+                className="bg-green-500 text-white px-4 py-2 rounded-lg ml-2 hover:bg-green-600 transition-colors duration-300"
+                disabled={isGeneratingImage}
+              >
+                <Image size={20} />
               </button>
             </div>
           </div>
