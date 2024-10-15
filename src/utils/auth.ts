@@ -5,7 +5,7 @@ interface User {
   id: string;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/api` : 'http://localhost:3000/api';
 
 export const isAuthenticated = (): boolean => {
   return localStorage.getItem('isAuthenticated') === 'true';
@@ -20,7 +20,7 @@ export const getUser = (): { id: string, username: string, email: string } | nul
 
 export const authenticate = async (email: string, password: string): Promise<User | null> => {
   try {
-    const response = await fetch(`${API_URL}/api/login`, {
+    const response = await fetch(`${API_URL}/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ export const logout = (): void => {
 
 export const signup = async (username: string, email: string, password: string): Promise<{ success: boolean; message: string }> => {
   try {
-    const response = await fetch(`${API_URL}/api/signup`, {
+    const response = await fetch(`${API_URL}/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

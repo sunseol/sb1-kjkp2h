@@ -10,12 +10,10 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
-const API_URL = import.meta.env.PROD 
-  ? 'https://your-vercel-deployment-url.vercel.app/api' 
-  : 'http://localhost:3000/api';
+const API_URL = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/api` : 'http://localhost:3000/api';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 interface FormData {
   [key: string]: string;
