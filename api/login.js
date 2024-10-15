@@ -6,9 +6,8 @@ import cors from 'micro-cors';
 const corsHandler = cors({
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
-  origin: 'https://sb1-kjkp2h-pr3chvx7d-sunseols-projects.vercel.app'
+  origin: '*'
 });
-
 const handler = async (req, res) => {
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
