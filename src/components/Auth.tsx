@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authenticate, login, signup } from '../utils/auth';
+import { API_URL } from '../utils/api';
 
 const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -16,7 +17,8 @@ const Auth: React.FC = () => {
 
     try {
       if (isLogin) {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/login`, {
+        console.log('로그인 시도:', { email }); // 이메일 로깅 (비밀번호는 보안상 로깅하지 않음)
+        const response = await fetch(`${API_URL}/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -25,13 +27,18 @@ const Auth: React.FC = () => {
           body: JSON.stringify({ email, password }),
         });
 
+        console.log('서버 응답:', response.status, response.statusText);
+
         if (!response.ok) {
-          throw new Error('로그인에 실패했습니다.');
+          const errorData = await response.json();
+          throw new Error(errorData.message || '로그인에 실패했습니다.');
         }
 
         const data = await response.json();
-        if (data.user && data.user.id) {
-          login(data.user);
+        console.log('로그인 성공 데이터:', data);
+
+        if (data.id) {
+          login(data);
           navigate('/dashboard');
         } else {
           setError('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.');
@@ -48,8 +55,8 @@ const Auth: React.FC = () => {
       }
     } catch (err) {
       console.error('Auth error:', err);
-      if (err instanceof TypeError && err.message === 'Failed to fetch') {
-        setError('서버에 연결할 수 없습니다. 네트워크 연결을 확인해주세요.');
+      if (err instanceof Error) {
+        setError(err.message);
       } else {
         setError('인증 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
       }
