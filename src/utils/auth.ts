@@ -1,4 +1,3 @@
-
 interface User {
   email: string;
   username: string;
@@ -7,12 +6,10 @@ interface User {
 }
 
 const getApiUrl = () => {
-  if (import.meta.env.PROD) {
-    // Vercel 환경에서는 현재 호스트를 사용
-    return `https://${window.location.hostname}/api`;
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}/api`;
   }
-  // 개발 환경
-  return `${import.meta.env.VITE_API_URL}/api`;
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 };
 
 export const API_URL = getApiUrl();
@@ -38,12 +35,14 @@ export const authenticate = async (email: string, password: string): Promise<Use
       body: JSON.stringify({ email, password }),
     });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Login error response:', errorText);
+      throw new Error(errorText || 'Authentication failed');
+    }
+
     const data = await response.json();
     console.log('Server response:', data);
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Authentication failed');
-    }
 
     if (data.success && data.id) {
       return { id: data.id, email, username: data.username };
