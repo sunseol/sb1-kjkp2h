@@ -6,9 +6,9 @@ interface User {
 }
 
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://sb1-kjkp2h-git-v11-sunseols-projects.vercel.app';
-
-console.log('API_URL:', API_URL); // 디버깅을 위해 추가
+const API_URL = process.env.VERCEL_URL 
+  ? `https://sb1-kjkp2h-git-v11-sunseols-projects.vercel.app`
+  : 'http://localhost:3000';
 
 export const isAuthenticated = (): boolean => {
   return localStorage.getItem('isAuthenticated') === 'true';
