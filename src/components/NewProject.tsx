@@ -77,8 +77,11 @@ const NewProject: React.FC<{ setCurrentStep: (step: number) => void }> = ({ setC
 
   const handleSubmit = async () => {
     setIsLoading(true);
+    setError(null); // 에러 상태 초기화
     try {
+      console.log('AI 조언 요청 시작:', { step, formData });
       const response = await getAdviceForStep(step, formData);
+      console.log('AI 조언 응답:', response);
       const newAdvice = [...advice];
       newAdvice[step - 1] = response;
       setAdvice(newAdvice);
@@ -87,6 +90,7 @@ const NewProject: React.FC<{ setCurrentStep: (step: number) => void }> = ({ setC
       setIsSubmitted(newIsSubmitted);
     } catch (error) {
       console.error('조언을 가져오는 중 오류 발생:', error);
+      setError('조언을 가져오는 중 오류가 발생했습니다. 다시 시도해 주세요.');
       const newAdvice = [...advice];
       newAdvice[step - 1] = '조언을 가져오는 중 오류가 발생했습니다.';
       setAdvice(newAdvice);
@@ -293,6 +297,8 @@ const NewProject: React.FC<{ setCurrentStep: (step: number) => void }> = ({ setC
           </div>
           {isLoading ? (
             <p>조언을 생성하는 중입니다...</p>
+          ) : error ? (
+            <p className="text-red-500">{error}</p>
           ) : (
             <div className="markdown-preview prose max-w-none">
               <ReactMarkdown>{advice[step - 1]}</ReactMarkdown>
