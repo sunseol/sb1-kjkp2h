@@ -4,6 +4,7 @@ import { PlusCircle, Folder, BarChart2, Calendar, Users, Tag } from 'lucide-reac
 import { getUser } from '../utils/auth';
 import LoadingSpinner from './LoadingSpinner';
 import { ComponentProps } from '../App'; // App.tsx에서 ComponentProps를 import
+import { API_URL } from '../utils/api'; // API_URL import 추가
 
 interface Project {
   id: number;
@@ -32,7 +33,8 @@ const Dashboard: React.FC<ComponentProps> = ({ setCurrentStep }) => {
       }
 
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${user.id}/projects`);
+        console.log('API URL:', API_URL); // API URL 로깅
+        const response = await fetch(`${API_URL}/users/${user.id}/projects`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
