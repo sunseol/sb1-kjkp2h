@@ -1,7 +1,28 @@
 import { getSession } from 'next-auth/react';
-import { connectToDatabase } from '../../../utils/mongodb';
+import { query } from '../../../utils/database';
+import Cors from 'cors';
+
+const cors = Cors({
+  methods: ['GET', 'HEAD'],
+});
+
+function runMiddleware(req, res, fn) {
+  return new Promise((resolve, reject) => {
+    fn(req, res, (result) => {
+      if (result instanceof Error) {
+        return reject(result);
+      }
+      return resolve(result);
+    });
+  });
+}
 
 export default async function handler(req, res) {
+  await runMiddleware(req, res, cors);
+
+  console.log('API route hit:', req.url);
+  console.log('Query params:', req.query);
+
   const session = await getSession({ req });
 
   if (!session) {
@@ -14,11 +35,10 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: 'Forbidden' });
   }
 
-  const { db } = await connectToDatabase();
-
   try {
-    const projects = await db.collection('projects').find({ userId }).toArray();
-    res.status(200).json(projects);
+    const result = await query('SELECT * FROM projects WHERE user_id = $1', [userId]);
+    console.log('Projects found:', result.rows.length);
+    res.status(200).json(result.rows);
   } catch (error) {
     console.error('Error fetching projects:', error);
     res.status(500).json({ error: 'Internal Server Error' });

@@ -18,7 +18,7 @@ const Auth: React.FC = () => {
     try {
       if (isLogin) {
         console.log('로그인 시도:', { email, apiUrl: API_URL });
-        const response = await fetch(`${API_URL}/login`, {
+        const response = await fetch(`${API_URL}/api/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -48,7 +48,7 @@ const Auth: React.FC = () => {
         if (result.success) {
           setError('');
           setIsLogin(true);
-          alert('회원��입에 성공했습니다. 이제 로그인해주세요.');
+          alert('회원가입에 성공했습니다. 이제 로그인해주세요.');
         } else {
           setError(result.message);
         }

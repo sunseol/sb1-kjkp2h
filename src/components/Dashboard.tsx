@@ -4,7 +4,7 @@ import { PlusCircle, Folder, BarChart2, Calendar, Users, Tag } from 'lucide-reac
 import { getUser } from '../utils/auth';
 import LoadingSpinner from './LoadingSpinner';
 import { ComponentProps } from '../App'; // App.tsx에서 ComponentProps를 import
-import { API_URL } from '../utils/api'; // API_URL import 추가
+import { fetchProjects } from '../utils/api'; // API_URL import 추가
 
 interface Project {
   id: number;
@@ -24,35 +24,23 @@ const Dashboard: React.FC<ComponentProps> = ({ setCurrentStep }) => {
 
   useEffect(() => {
     setCurrentStep(1); // Dashboard는 1단계로 설정
-    const fetchProjects = async () => {
-      const user = getUser();
-      if (!user || !user.id) {
-        setError('사용자 정보를 찾을 수 없습니다. 다시 로그인해 주세요.');
-        setIsLoading(false);
-        return;
-      }
-
+    const loadProjects = async () => {
       try {
-        console.log('API URL:', API_URL); // API URL 로깅
-        const response = await fetch(`${API_URL}/users/${user.id}/projects`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        const user = getUser();
+        if (!user) {
+          throw new Error('User not found');
         }
-        const data = await response.json();
-        if (data.success) {
-          setProjects(data.projects);
-        } else {
-          setError('프로젝트를 불러오는데 실패했습니다: ' + data.message);
-        }
+        const data = await fetchProjects(user.id);
+        setProjects(data);
+        setIsLoading(false);
       } catch (error) {
         console.error('프로젝트 불러오기 중 오류 발생:', error);
-        setError('프로젝트를 불러오는 중 오류가 발생했습니다.');
-      } finally {
+        setError('프로젝트를 불러오는 데 실패했습니다.');
         setIsLoading(false);
       }
     };
 
-    fetchProjects();
+    loadProjects();
   }, [setCurrentStep]);
 
   return (

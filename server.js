@@ -7,10 +7,21 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-app.use(cors({
-  origin: 'http://localhost:5173', // Vite 개발 서버 주소
+
+// CORS 설정을 환경에 따라 다르게 적용
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production'
+    ? 'https://sb1-kjkp2h-git-v11-sunseols-projects.vercel.app/' // 프로덕션 환경의 프론트엔드 도메인
+    : 'http://localhost:5173', // 개발 환경의 Vite 서버 주소
   credentials: true,
-}));
+};
+
+app.use(cors(corsOptions));
+
+app.use((req, res, next) => {
+  console.log(`Received ${req.method} request to ${req.url}`);
+  next();
+});
 
 console.log('Database URL:', process.env.POSTGRES_URL);
 
@@ -244,6 +255,24 @@ app.delete('/api/projects/:projectId', async (req, res) => {
   } catch (error) {
     console.error('프로젝트 삭제 오류:', error);
     res.status(500).json({ success: false, message: '서버 오류', error: error.toString() });
+  }
+});
+
+// 프로젝트 조회 API 수정
+app.get('/api/projects', async (req, res) => {
+  const { userId } = req.query;
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
+
+  try {
+    console.log('Fetching projects for user:', userId);
+    const result = await db.query('SELECT * FROM projects WHERE user_id = $1', [userId]);
+    console.log('Projects found:', result.rows.length);
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
