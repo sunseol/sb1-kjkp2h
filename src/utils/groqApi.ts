@@ -1,21 +1,8 @@
 import axios from 'axios';
 
-// 환경 변수 타입 선언
-interface ImportMetaEnv {
-  VITE_GROQ_API_KEY: string;
-  // 다른 환경 변수들도 여기에 추가할 수 있습니다.
-}
-
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
-}
-
-const API_URL = process.env.VERCEL_URL 
-  ? `https://sb1-kjkp2h-sunseols-projects.vercel.app/api` 
-  : 'http://localhost:3000/api';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
 interface FormData {
   [key: string]: string;
