@@ -34,7 +34,8 @@ const handler = async (req, res) => {
           success: true, 
           message: '로그인 성공', 
           id: user.id,
-          username: user.username 
+          username: user.username,
+          email: user.email
         });
       } else {
         console.log('Invalid password for user:', email);

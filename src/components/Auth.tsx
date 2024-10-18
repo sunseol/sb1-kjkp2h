@@ -21,8 +21,12 @@ const Auth: React.FC = () => {
         const data = await apiLogin(email, password);
         console.log('로그인 성공 데이터:', data);
 
-        if (data.id) {
-          authLogin(data);
+        if (data.success && data.id) {
+          authLogin({
+            id: data.id,
+            username: data.username,
+            email: data.email
+          });
           navigate('/dashboard');
         } else {
           setError('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.');
@@ -51,7 +55,7 @@ const Auth: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
       <div className="bg-white p-8 rounded-lg shadow-md w-96">
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-          {isLogin ? '로그인' : '회원가입'}
+          {isLogin ? '로그인' : '회원��입'}
         </h2>
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
         <form onSubmit={handleSubmit}>
