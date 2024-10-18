@@ -6,8 +6,10 @@ import { getUser } from '../utils/auth';
 import LoadingSpinner from './LoadingSpinner';
 import { generateImage, generateDummyImage } from '../utils/imageGeneration';
 import ReactMarkdown from 'react-markdown';
+import { ComponentProps } from '../App';
 
 interface FormData {
+  [key: string]: string;
   companyName: string;
   industry: string;
   mainProduct: string;
@@ -26,7 +28,7 @@ interface FormData {
   socialMedia: string;
 }
 
-const FinalResult: React.FC = () => {
+const FinalResult: React.FC<ComponentProps> = ({ setCurrentStep }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const formData = location.state?.formData as FormData | undefined;
@@ -227,7 +229,7 @@ const FinalResult: React.FC = () => {
               onClick={handleSaveProject}
               className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out"
             >
-              프로젝트 저장
+              프���젝트 저장
             </button>
           </div>
           {/* 이미지 생성 섹션 */}
