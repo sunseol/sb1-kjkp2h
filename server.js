@@ -10,9 +10,7 @@ app.use(express.json());
 
 // CORS 설정을 환경에 따라 다르게 적용
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production'
-    ? 'https://sb1-kjkp2h-git-v11-sunseols-projects.vercel.app/' // 프로덕션 환경의 프론트엔드 도메인
-    : 'http://localhost:5173', // 개발 환경의 Vite 서버 주소
+  origin: ['https://sb1-kjkp2h-git-v11-sunseols-projects.vercel.app', 'http://localhost:5173'],
   credentials: true,
 };
 
