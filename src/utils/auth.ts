@@ -7,8 +7,8 @@ interface User {
 
 
 const API_URL = process.env.VERCEL_URL 
-  ? `https://sb1-kjkp2h-o6stapb0f-sunseols-projects.vercel.app/api` 
-  : 'http://localhost:3000/api';
+  ? `https://sb1-kjkp2h-o6stapb0f-sunseols-projects.vercel.app` 
+  : 'http://localhost:3000';
 
 export const isAuthenticated = (): boolean => {
   return localStorage.getItem('isAuthenticated') === 'true';
