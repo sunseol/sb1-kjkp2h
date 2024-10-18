@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authenticate, login, signup } from '../utils/auth';
-import { API_URL } from '../utils/api';
+import { login as authLogin, signup } from '../utils/auth';
+import { login as apiLogin } from '../utils/api';
 
 const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -17,29 +17,12 @@ const Auth: React.FC = () => {
 
     try {
       if (isLogin) {
-        console.log('로그인 시도:', { email, apiUrl: API_URL });
-        const response = await fetch(`${API_URL}/login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify({ email, password }),
-        });
-
-        console.log('서버 응답:', response.status, response.statusText);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Error response:', errorText);
-          throw new Error(errorText || '로그인에 실패했습니다.');
-        }
-
-        const data = await response.json();
+        console.log('로그인 시도:', { email });
+        const data = await apiLogin(email, password);
         console.log('로그인 성공 데이터:', data);
 
         if (data.id) {
-          login(data);
+          authLogin(data);
           navigate('/dashboard');
         } else {
           setError('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.');

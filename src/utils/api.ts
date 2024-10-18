@@ -10,5 +10,19 @@ export const fetchProjects = async (userId: string) => {
   return response.json();
 };
 
-// 다른 API 호출 함수들...
+export const login = async (email: string, password: string) => {
+  const response = await fetch(`${API_URL}/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || '로그인에 실패했습니다.');
+  }
+  return response.json();
+};
 
+// 다른 API 호출 함수들...
