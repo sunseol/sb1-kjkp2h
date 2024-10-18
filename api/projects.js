@@ -3,10 +3,13 @@ import Cors from 'micro-cors';
 
 const cors = Cors({
   allowMethods: ['GET', 'HEAD'],
-  origin: '*', // 개발 중에는 모든 출처를 허용합니다. 프로덕션에서는 특정 도메인으로 제한하세요.
+  origin: '*',
 });
 
 const handler = async (req, res) => {
+  console.log('Received request:', req.method, req.url);
+  console.log('Query parameters:', req.query);
+
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -14,19 +17,25 @@ const handler = async (req, res) => {
   if (req.method === 'GET') {
     const { userId } = req.query;
     if (!userId) {
+      console.log('User ID is missing');
       return res.status(400).json({ error: 'User ID is required' });
     }
     try {
+      console.log('Attempting to connect to database...');
       const client = await db.connect();
+      console.log('Connected to database');
+      
+      console.log('Executing query for user ID:', userId);
       const result = await client.query('SELECT * FROM projects WHERE user_id = $1', [userId]);
       client.release();
-      console.log('Projects found:', result.rows.length);
+      console.log('Query completed. Projects found:', result.rows.length);
       res.status(200).json(result.rows);
     } catch (error) {
-      console.error('Error fetching projects:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      console.error('Error details:', error);
+      res.status(500).json({ error: 'Internal Server Error', details: error.message });
     }
   } else {
+    console.log('Method not allowed:', req.method);
     res.setHeader('Allow', ['GET']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
