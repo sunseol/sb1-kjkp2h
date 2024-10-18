@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Dispatch, SetStateAction } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Header from './components/Header';
 import Home from './components/Home';
@@ -10,6 +10,16 @@ import FinalResult from './components/FinalResult';
 import Details from './components/Details';
 import Auth from './components/Auth';
 import Assistant from './components/Assistant';
+
+// Props 타입 정의 및 내보내기
+export interface ComponentProps {
+  setCurrentStep: Dispatch<SetStateAction<number>>;
+}
+
+export interface AssistantProps {
+  currentStep: number;
+  setEditMode: () => void;
+}
 
 function App() {
   const [currentStep, setCurrentStep] = useState(0);

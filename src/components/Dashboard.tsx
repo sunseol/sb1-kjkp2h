@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { PlusCircle, Folder, BarChart2, Calendar, Users, Tag } from 'lucide-react';
 import { getUser } from '../utils/auth';
 import LoadingSpinner from './LoadingSpinner';
+import { ComponentProps } from '../App'; // App.tsx에서 ComponentProps를 import
 
 interface Project {
   id: number;
@@ -15,12 +16,13 @@ interface Project {
   };
 }
 
-const Dashboard: React.FC = () => {
+const Dashboard: React.FC<ComponentProps> = ({ setCurrentStep }) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setCurrentStep(1); // Dashboard는 1단계로 설정
     const fetchProjects = async () => {
       const user = getUser();
       if (!user || !user.id) {
@@ -49,7 +51,7 @@ const Dashboard: React.FC = () => {
     };
 
     fetchProjects();
-  }, []);
+  }, [setCurrentStep]);
 
   return (
     <div className="min-h-screen bg-gray-100 p-8 relative">

@@ -1,12 +1,9 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Zap } from 'lucide-react';
+import { ComponentProps } from '../App'; // App.tsx에서 ComponentProps를 import
 
-interface HomeProps {
-  setCurrentStep: (step: number) => void;
-}
-
-const Home: React.FC<HomeProps> = ({ setCurrentStep }) => {
+const Home: React.FC<ComponentProps> = ({ setCurrentStep }) => {
   useEffect(() => {
     setCurrentStep(0); // 홈 페이지는 0단계로 설정
   }, [setCurrentStep]);
@@ -28,7 +25,7 @@ const Home: React.FC<HomeProps> = ({ setCurrentStep }) => {
           to="/details"
           className="bg-transparent border-2 border-white px-6 py-3 rounded-full font-semibold flex items-center hover:bg-white hover:text-blue-600 transition duration-300"
         >
-          더 알아보기 <Zap className="ml-2" />
+          계속 더 알아보기 <Zap className="ml-2" />
         </Link>
       </div>
     </div>
