@@ -30,12 +30,14 @@ const Dashboard: React.FC<ComponentProps> = ({ setCurrentStep }) => {
         if (!user) {
           throw new Error('User not found');
         }
+        console.log('Fetching projects for user:', user.id);
         const data = await fetchProjects(user.id);
+        console.log('Fetched projects:', data);
         setProjects(data);
         setIsLoading(false);
       } catch (error) {
         console.error('프로젝트 불러오기 중 오류 발생:', error);
-        setError('프로젝트를 불러오는 데 실패했습니다.');
+        setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
         setIsLoading(false);
       }
     };
