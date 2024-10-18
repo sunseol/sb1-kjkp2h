@@ -9,7 +9,7 @@ export const fetchProjects = async (userId: string) => {
 };
 
 export const login = async (email: string, password: string) => {
-  const response = await fetch(`${API_URL}/login`, {
+  const response = await fetch(`${API_URL}/api/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

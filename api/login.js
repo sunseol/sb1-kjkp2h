@@ -4,7 +4,7 @@ import Cors from 'micro-cors';
 
 const cors = Cors({
   allowMethods: ['POST', 'HEAD', 'OPTIONS'],
-  origin: 'https://sb1-kjkp2h-git-v11-sunseols-projects.vercel.app',
+  origin: '*',
 });
 
 const handler = async (req, res) => {
