@@ -16,9 +16,22 @@ const Auth: React.FC = () => {
 
     try {
       if (isLogin) {
-        const user = await authenticate(email, password);
-        if (user && user.id) {
-          login(user);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (!response.ok) {
+          throw new Error('로그인에 실패했습니다.');
+        }
+
+        const data = await response.json();
+        if (data.user && data.user.id) {
+          login(data.user);
           navigate('/dashboard');
         } else {
           setError('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.');
