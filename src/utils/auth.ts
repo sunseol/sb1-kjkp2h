@@ -1,3 +1,6 @@
+import { GetServerSidePropsContext } from 'next'; // GetServerSidePropsContext 임포트 추가
+import { getSession } from 'next-auth/react'; // 이 줄을 추가합니다.
+
 interface User {
   email: string;
   username: string;
@@ -5,7 +8,16 @@ interface User {
   id: string;
 }
 
-const API_URL = 'https://sb1-kjkp2h-git-v11-sunseols-projects.vercel.app/api';
+const getApiUrl = () => {
+  if (import.meta.env.PROD) {
+    // Vercel 환경에서는 현재 호스트를 사용
+    return `https://${window.location.hostname}/api`;
+  }
+  // 개발 환경
+  return `${import.meta.env.VITE_API_URL}/api`;
+};
+
+export const API_URL = getApiUrl();
 
 export const isAuthenticated = (): boolean => {
   return localStorage.getItem('isAuthenticated') === 'true';
@@ -35,7 +47,7 @@ export const authenticate = async (email: string, password: string): Promise<Use
       throw new Error(data.message || 'Authentication failed');
     }
 
-    if (data.success && data.id) {  // id 확인 추가
+    if (data.success && data.id) {
       return { id: data.id, email, username: data.username };
     }
     return null;

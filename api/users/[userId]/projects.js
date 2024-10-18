@@ -1,22 +1,26 @@
-import { createPool } from '@vercel/postgres';
-
-const pool = createPool({
-  connectionString: process.env.POSTGRES_URL
-});
+import { getSession } from 'next-auth/react';
+import { connectToDatabase } from '../../../utils/mongodb';
 
 export default async function handler(req, res) {
+  const session = await getSession({ req });
+
+  if (!session) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   const { userId } = req.query;
 
-  if (req.method === 'GET') {
-    try {
-      const result = await pool.query('SELECT id, name, created_at FROM projects WHERE user_id = $1 ORDER BY created_at DESC', [userId]);
-      res.status(200).json({ success: true, projects: result.rows });
-    } catch (error) {
-      console.error('프로젝트 조회 오류:', error);
-      res.status(500).json({ success: false, message: '서버 오류', error: error.toString() });
-    }
-  } else {
-    res.setHeader('Allow', ['GET']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+  if (session.user.id !== userId) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  const { db } = await connectToDatabase();
+
+  try {
+    const projects = await db.collection('projects').find({ userId }).toArray();
+    res.status(200).json(projects);
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 }

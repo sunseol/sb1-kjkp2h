@@ -8,3 +8,18 @@ const getApiUrl = () => {
 };
 
 export const API_URL = getApiUrl();
+
+export const fetchProjects = async (userId: string) => {
+  try {
+    const response = await fetch(`${API_URL}/users/${userId}/projects`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch projects');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    throw error;
+  }
+};
+
+// 다른 API 호출 함수들...
