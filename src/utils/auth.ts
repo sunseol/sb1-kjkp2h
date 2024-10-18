@@ -7,7 +7,7 @@ interface User {
 
 
 const API_URL = process.env.VERCEL_URL 
-  ? `https://sb1-kjkp2h-o6stapb0f-sunseols-projects.vercel.app` 
+  ? `https://sb1-kjkp2h-git-v11-sunseols-projects.vercel.app` 
   : 'http://localhost:3000';
 
 export const isAuthenticated = (): boolean => {
