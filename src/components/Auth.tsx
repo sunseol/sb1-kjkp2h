@@ -18,7 +18,7 @@ const Auth: React.FC = () => {
     try {
       if (isLogin) {
         console.log('로그인 시도:', { email, apiUrl: API_URL });
-        const response = await fetch(`${API_URL}/api/login`, {
+        const response = await fetch(`${API_URL}/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -30,8 +30,9 @@ const Auth: React.FC = () => {
         console.log('서버 응답:', response.status, response.statusText);
 
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || '로그인에 실패했습니다.');
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+          throw new Error(errorText || '로그인에 실패했습니다.');
         }
 
         const data = await response.json();

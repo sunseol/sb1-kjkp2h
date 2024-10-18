@@ -1,60 +1,49 @@
-import { query } from '../../utils/database';
+import { db } from '@vercel/postgres';
 import bcrypt from 'bcryptjs';
-import Cors from 'cors';
+import Cors from 'micro-cors';
 
 const cors = Cors({
-  methods: ['POST', 'HEAD'],
-  origin: '*', // 개발 중에는 모든 출처를 허용합니다. 프로덕션에서는 특정 도메인으로 제한하세요.
+  allowMethods: ['POST', 'HEAD'],
+  origin: '*', // 프로덕션에서는 특정 도메인으로 제한하세요.
 });
 
-function runMiddleware(req, res, fn) {
-  return new Promise((resolve, reject) => {
-    fn(req, res, (result) => {
-      if (result instanceof Error) {
-        return reject(result);
-      }
-      return resolve(result);
-    });
-  });
-}
-
-export default async function handler(req, res) {
-  await runMiddleware(req, res, cors);
+const handler = async (req, res) => {
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
   if (req.method !== 'POST') {
-    console.log('Method not allowed:', req.method);
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
   const { email, password } = req.body;
-  console.log('Login attempt for email:', email);
 
   try {
-    const result = await query('SELECT * FROM users WHERE email = $1', [email]);
-    const user = result.rows[0];
+    const client = await db.connect();
+    const { rows } = await client.query('SELECT * FROM users WHERE email = $1', [email]);
+    client.release();
 
-    if (!user) {
-      console.log('User not found for email:', email);
-      return res.status(400).json({ success: false, message: 'Invalid credentials' });
+    if (rows.length > 0) {
+      const user = rows[0];
+      const isMatch = await bcrypt.compare(password, user.password);
+
+      if (isMatch) {
+        res.status(200).json({ 
+          success: true, 
+          message: '로그인 성공', 
+          id: user.id,
+          username: user.username 
+        });
+      } else {
+        res.status(401).json({ success: false, message: '이메일 또는 비밀번호가 올바르지 않습니다.' });
+      }
+    } else {
+      res.status(401).json({ success: false, message: '이메일 또는 비밀번호가 올바르지 않습니다.' });
     }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      console.log('Invalid password for email:', email);
-      return res.status(400).json({ success: false, message: 'Invalid credentials' });
-    }
-
-    const response = {
-      success: true,
-      id: user.id.toString(),
-      username: user.username,
-      email: user.email
-    };
-    console.log('Successful login. Response:', JSON.stringify(response));
-    res.status(200).json(response);
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('로그인 오류:', error);
+    res.status(500).json({ success: false, message: '서버 오류', error: error.message });
   }
-}
+};
+
+export default cors(handler);
