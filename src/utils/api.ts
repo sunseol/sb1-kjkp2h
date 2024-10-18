@@ -20,6 +20,7 @@ export const login = async (email: string, password: string) => {
   });
   if (!response.ok) {
     const errorText = await response.text();
+    console.error('Login error response:', errorText);
     throw new Error(errorText || '로그인에 실패했습니다.');
   }
   return response.json();

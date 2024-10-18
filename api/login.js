@@ -8,25 +8,35 @@ const cors = Cors({
 });
 
 const handler = async (req, res) => {
+  console.log('Received request:', req.method, req.url);
+  
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
+    console.log('Method not allowed:', req.method);
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
   const { email, password } = req.body;
+  console.log('Login attempt for email:', email);
 
   try {
-    console.log('Attempting to login user:', email);
+    console.log('Attempting to connect to database...');
     const client = await db.connect();
+    console.log('Connected to database');
+    
+    console.log('Querying database for user...');
     const { rows } = await client.query('SELECT * FROM users WHERE email = $1', [email]);
     client.release();
+    console.log('Query completed. Rows found:', rows.length);
 
     if (rows.length > 0) {
       const user = rows[0];
+      console.log('User found, comparing passwords...');
       const isMatch = await bcrypt.compare(password, user.password);
+      console.log('Password match:', isMatch);
 
       if (isMatch) {
         console.log('Login successful for user:', email);

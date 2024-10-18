@@ -55,7 +55,7 @@ const Auth: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
       <div className="bg-white p-8 rounded-lg shadow-md w-96">
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-          {isLogin ? '로그인' : '회원��입'}
+          {isLogin ? '로그인' : '회원가입'}
         </h2>
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
         <form onSubmit={handleSubmit}>
