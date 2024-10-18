@@ -4,7 +4,7 @@ import Cors from 'micro-cors';
 
 const cors = Cors({
   allowMethods: ['POST', 'HEAD', 'OPTIONS'],
-  origin: '*', // 프로덕션에서는 특정 도메인으로 제한하세요.
+  origin: 'https://sb1-kjkp2h-git-v11-sunseols-projects.vercel.app',
 });
 
 const handler = async (req, res) => {
