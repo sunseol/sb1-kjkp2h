@@ -5,7 +5,8 @@ interface User {
   id: string;
 }
 
-const API_URL = 'https://sb1-kjkp2h-git-v11-sunseols-projects.vercel.app/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 
 export const isAuthenticated = (): boolean => {
   return localStorage.getItem('isAuthenticated') === 'true';
@@ -20,7 +21,7 @@ export const getUser = (): { id: string, username: string, email: string } | nul
 
 export const authenticate = async (email: string, password: string): Promise<User | null> => {
   try {
-    const response = await fetch(`${API_URL}/login`, {
+    const response = await fetch(`${API_URL}/api/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

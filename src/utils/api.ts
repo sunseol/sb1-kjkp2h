@@ -1,4 +1,5 @@
-export const API_URL = `https://sb1-kjkp2h-git-v11-sunseols-projects.vercel.app`;
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 
 export const fetchProjects = async (userId: string) => {
   const response = await fetch(`${API_URL}/projects?userId=${userId}`);
