@@ -11,7 +11,7 @@ interface ImportMeta {
 }
 
 const API_URL = process.env.VERCEL_URL 
-  ? `https://sb1-kjkp2h-o6stapb0f-sunseols-projects.vercel.app/api` 
+  ? `https://sb1-kjkp2h-sunseols-projects.vercel.app/api` 
   : 'http://localhost:3000/api';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
