@@ -1,4 +1,3 @@
-import { API_URL } from './api';
 
 interface User {
   email: string;
@@ -6,6 +5,17 @@ interface User {
   isAdmin?: boolean;
   id: string;
 }
+
+const getApiUrl = () => {
+  if (import.meta.env.PROD) {
+    // Vercel 환경에서는 현재 호스트를 사용
+    return `https://${window.location.hostname}/api`;
+  }
+  // 개발 환경
+  return `${import.meta.env.VITE_API_URL}/api`;
+};
+
+export const API_URL = getApiUrl();
 
 export const isAuthenticated = (): boolean => {
   return localStorage.getItem('isAuthenticated') === 'true';
@@ -20,11 +30,7 @@ export const getUser = (): { id: string, username: string, email: string } | nul
 
 export const authenticate = async (email: string, password: string): Promise<User | null> => {
   try {
-    const url = `${API_URL}/api/login`;
-    console.log('Authenticating at:', url);
-    console.log('Request body:', JSON.stringify({ email, password }));
-    
-    const response = await fetch(url, {
+    const response = await fetch(`${API_URL}/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -32,22 +38,11 @@ export const authenticate = async (email: string, password: string): Promise<Use
       body: JSON.stringify({ email, password }),
     });
 
-    console.log('Response status:', response.status);
-    console.log('Response headers:', JSON.stringify(Object.fromEntries(response.headers)));
-
-    const text = await response.text();
-    console.log('Response text:', text);
+    const data = await response.json();
+    console.log('Server response:', data);
 
     if (!response.ok) {
-      throw new Error(`Authentication failed: ${response.status} ${text}`);
-    }
-
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch (error) {
-      console.error('Failed to parse response as JSON:', error);
-      throw new Error('Invalid response format');
+      throw new Error(data.message || 'Authentication failed');
     }
 
     if (data.success && data.id) {
@@ -80,7 +75,7 @@ export const logout = (): void => {
 
 export const signup = async (username: string, email: string, password: string): Promise<{ success: boolean; message: string }> => {
   try {
-    const response = await fetch(`${API_URL}/api/register`, {
+    const response = await fetch(`${API_URL}/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
