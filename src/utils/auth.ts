@@ -5,14 +5,8 @@ interface User {
   id: string;
 }
 
-const getApiUrl = () => {
-  if (typeof window !== 'undefined') {
-    return `${window.location.origin}/api`;
-  }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
-};
 
-export const API_URL = getApiUrl();
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 export const isAuthenticated = (): boolean => {
   return localStorage.getItem('isAuthenticated') === 'true';
@@ -27,7 +21,7 @@ export const getUser = (): { id: string, username: string, email: string } | nul
 
 export const authenticate = async (email: string, password: string): Promise<User | null> => {
   try {
-    const response = await fetch(`${API_URL}/login`, {
+    const response = await fetch(`${API_URL}/api/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

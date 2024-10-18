@@ -116,11 +116,12 @@ db.connect()
 
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
+  console.log('Login attempt:', { email }); // 비밀번호는 로그에 남기지 않습니다.
 
   try {
-    console.log('Attempting to query database...');
+    console.log('Querying database for user:', email);
     const { rows } = await db.query('SELECT * FROM users WHERE email = $1', [email]);
-    console.log('Query result:', rows);
+    console.log('Query result:', rows.length > 0 ? 'User found' : 'User not found');
 
     if (rows.length > 0) {
       const user = rows[0];
@@ -128,55 +129,55 @@ app.post('/api/login', async (req, res) => {
       console.log('Password match:', isMatch);
 
       if (isMatch) {
+        console.log('Login successful for user:', email);
         res.status(200).json({ 
           success: true, 
           message: '로그인 성공', 
-          id: user.id,  // 여기에 id를 추가
+          id: user.id,
           username: user.username 
         });
       } else {
+        console.log('Login failed: incorrect password for user:', email);
         res.status(401).json({ success: false, message: '이메일 또는 비밀번호가 올바르지 않습니다.' });
       }
     } else {
-      res.status(401).json({ success: false, message: '이메일 또는 비밀번호가 올바지 않습니다.' });
+      console.log('Login failed: user not found:', email);
+      res.status(401).json({ success: false, message: '이메일 또는 비밀번호가 올바르지 않습니다.' });
     }
   } catch (error) {
-    console.error('로그인 오류:', error);
+    console.error('Login error:', error);
     res.status(500).json({ success: false, message: '서버 오류', error: error.message });
   }
 });
 
 app.post('/api/signup', async (req, res) => {
   const { username, password, email } = req.body;
+  console.log('Signup attempt:', { username, email });
 
   try {
-    console.log('Attempting to sign up user...');
-    console.log('Received data:', { username, email });
-    
-    // 사용자 이름 중복 확인
+    console.log('Checking for existing user:', { username, email });
     const { rows } = await db.query('SELECT * FROM users WHERE username = $1 OR email = $2', [username, email]);
-    console.log('Existing users:', rows);
+    console.log('Existing users found:', rows.length);
 
     if (rows.length > 0) {
-      console.log('User already exists');
+      console.log('Signup failed: User already exists');
       return res.status(400).json({ success: false, message: '이미 존재하는 사용자 이름 또는 이메일입니다.' });
     }
 
-    // 비밀번호 해싱
+    console.log('Hashing password');
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 새 사용자 추가
+    console.log('Inserting new user into database');
     const result = await db.query(
       'INSERT INTO users (username, password, email) VALUES ($1, $2, $3) RETURNING *',
       [username, hashedPassword, email]
     );
-    console.log('New user created:', result.rows[0]);
+    console.log('New user created:', { id: result.rows[0].id, username: result.rows[0].username });
 
-    console.log('User signed up successfully');
     res.status(201).json({ success: true, message: '회원가입 성공' });
   } catch (error) {
-    console.error('회원가입 오류:', error);
+    console.error('Signup error:', error);
     res.status(500).json({ success: false, message: '서버 오류', error: error.toString() });
   }
 });
@@ -274,6 +275,12 @@ app.get('/api/projects', async (req, res) => {
     console.error('Error fetching projects:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
+});
+
+// 전역 에러 핸들러 추가
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ success: false, message: '서버 오류', error: err.toString() });
 });
 
 export default app;
