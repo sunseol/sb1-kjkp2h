@@ -1,6 +1,4 @@
-export const API_URL = process.env.VERCEL_URL 
-? `https://sb1-kjkp2h-git-v11-sunseols-projects.vercel.app`
-: 'http://localhost:3000/api';
+export const API_URL = `https://sb1-kjkp2h-git-v11-sunseols-projects.vercel.app`;
 
 export const fetchProjects = async (userId: string) => {
   const response = await fetch(`${API_URL}/projects?userId=${userId}`);

@@ -9,6 +9,7 @@ export default defineConfig({
         target: 'https://sb1-kjkp2h-git-v11-sunseols-projects.vercel.app',
         changeOrigin: true,
         secure: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
       },
     },
   },

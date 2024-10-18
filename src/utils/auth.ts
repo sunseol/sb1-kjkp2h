@@ -5,10 +5,7 @@ interface User {
   id: string;
 }
 
-
-const API_URL = process.env.VERCEL_URL 
-  ? `https://sb1-kjkp2h-git-v11-sunseols-projects.vercel.app`
-  : 'http://localhost:3000';
+const API_URL = 'https://sb1-kjkp2h-git-v11-sunseols-projects.vercel.app';
 
 export const isAuthenticated = (): boolean => {
   return localStorage.getItem('isAuthenticated') === 'true';
@@ -70,7 +67,7 @@ export const logout = (): void => {
 
 export const signup = async (username: string, email: string, password: string): Promise<{ success: boolean; message: string }> => {
   try {
-    const response = await fetch(`${API_URL}/register`, {
+    const response = await fetch(`${API_URL}/api/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
