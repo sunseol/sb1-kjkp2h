@@ -2,11 +2,19 @@ export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 
 export const fetchProjects = async (userId: string) => {
-  const response = await fetch(`${API_URL}/projects?userId=${userId}`);
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+  try {
+    console.log('Fetching projects for user:', userId);
+    const response = await fetch(`${API_URL}/projects?userId=${userId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch projects');
+    }
+    const data = await response.json();
+    console.log('Projects fetched:', data);
+    return data;
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    throw error;
   }
-  return response.json();
 };
 
 export const login = async (email: string, password: string) => {

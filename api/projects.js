@@ -2,14 +2,11 @@ import { db } from '@vercel/postgres';
 import Cors from 'micro-cors';
 
 const cors = Cors({
-  allowMethods: ['GET', 'HEAD'],
-  origin: '*',
+  allowMethods: ['GET', 'HEAD', 'OPTIONS'],
+  origin: 'https://sb1-kjkp2h-git-v11-sunseols-projects.vercel.app',
 });
 
 const handler = async (req, res) => {
-  console.log('Received request:', req.method, req.url);
-  console.log('Query parameters:', req.query);
-
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -17,25 +14,21 @@ const handler = async (req, res) => {
   if (req.method === 'GET') {
     const { userId } = req.query;
     if (!userId) {
-      console.log('User ID is missing');
       return res.status(400).json({ error: 'User ID is required' });
     }
+
     try {
-      console.log('Attempting to connect to database...');
+      console.log('Fetching projects for user:', userId);
       const client = await db.connect();
-      console.log('Connected to database');
-      
-      console.log('Executing query for user ID:', userId);
       const result = await client.query('SELECT * FROM projects WHERE user_id = $1', [userId]);
       client.release();
-      console.log('Query completed. Projects found:', result.rows.length);
+      console.log('Projects found:', result.rows.length);
       res.status(200).json(result.rows);
     } catch (error) {
-      console.error('Error details:', error);
-      res.status(500).json({ error: 'Internal Server Error', details: error.message });
+      console.error('Error fetching projects:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   } else {
-    console.log('Method not allowed:', req.method);
     res.setHeader('Allow', ['GET']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
