@@ -79,12 +79,12 @@ export const signup = async (username: string, email: string, password: string):
       body: JSON.stringify({ username, email, password }),
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      throw new Error(data.message || 'Signup failed');
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Signup failed');
     }
 
+    const data = await response.json();
     return { success: true, message: data.message };
   } catch (error) {
     console.error('Signup error:', error);

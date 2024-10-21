@@ -13,6 +13,7 @@
   ],
   "rewrites": [
     { "source": "/api/login", "destination": "/api/login.js" },
+    { "source": "/api/signup", "destination": "/api/signup.js" },
     { "source": "/api/projects", "destination": "/api/projects.js" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
