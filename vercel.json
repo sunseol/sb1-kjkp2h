@@ -12,6 +12,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/api/login", "destination": "/api/login.js" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],

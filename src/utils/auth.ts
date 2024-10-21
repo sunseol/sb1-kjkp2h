@@ -21,6 +21,7 @@ export const getUser = (): { id: string, username: string, email: string } | nul
 
 export const authenticate = async (email: string, password: string): Promise<User | null> => {
   try {
+    console.log('Attempting to authenticate:', email);
     const response = await fetch(`${API_URL}/login`, {
       method: 'POST',
       headers: {
@@ -28,6 +29,8 @@ export const authenticate = async (email: string, password: string): Promise<Use
       },
       body: JSON.stringify({ email, password }),
     });
+
+    console.log('Response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
